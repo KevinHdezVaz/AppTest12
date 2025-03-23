@@ -5,7 +5,6 @@ import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-
 object RetrofitClient {
     private const val BASE_URL = "https://backtest.aftconta.mx/api/"
 
@@ -16,15 +15,15 @@ object RetrofitClient {
     }
 
     fun createApiService(context: Context): ApiService {
-        val sharedPreferences = context.getSharedPreferences("auth", Context.MODE_PRIVATE)
-        token = sharedPreferences.getString("token", null)
+        val sharedPreferences = context.getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
+        token = sharedPreferences.getString("access_token", null)
 
         val okHttpClient = OkHttpClient.Builder()
             .addInterceptor { chain ->
                 val requestBuilder = chain.request().newBuilder()
                     .addHeader("Accept", "application/json")
 
-                 token?.let {
+                token?.let {
                     requestBuilder.addHeader("Authorization", "Bearer $it")
                 }
 
@@ -41,8 +40,8 @@ object RetrofitClient {
     }
 
     fun saveToken(context: Context, token: String?) {
-        val sharedPreferences = context.getSharedPreferences("auth", Context.MODE_PRIVATE)
-        sharedPreferences.edit().putString("token", token).apply()
+        val sharedPreferences = context.getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
+        sharedPreferences.edit().putString("access_token", token).apply()
         setToken(token)
     }
 }

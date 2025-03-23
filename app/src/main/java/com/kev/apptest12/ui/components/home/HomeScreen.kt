@@ -1,44 +1,76 @@
 package com.kevin.courseApp.ui.main.compose
 
+import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.airbnb.lottie.compose.*
+import com.kev.apptest12.R
+import com.kev.apptest12.Screen
 import com.kev.apptest12.data.model.App
 import com.kev.apptest12.data.remote.ApiService
+import com.kevin.courseApp.ui.main.compose.componentes.AppCard
 import com.kevin.courseApp.ui.main.compose.componentes.CategorySection
-import com.kevin.courseApp.ui.main.compose.componentes.PopularAppsSection
+import com.kevin.courseApp.ui.main.compose.componentes.PopularAppsSectionHeader
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     apiService: ApiService,
-    navController: NavController, // Añadimos NavController como parámetro
+    context: Context,
+    navController: NavController,
     onUploadClick: () -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
     var apps by remember { mutableStateOf(listOf<App>()) }
     var searchQuery by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var popularAppsErrorMessage by remember { mutableStateOf<String?>(null) }
+    var userName by remember { mutableStateOf<String?>(null) }
+    var isLoading by remember { mutableStateOf(true) }
 
-    LaunchedEffect(Unit) {
+    val loadApps: () -> Unit = {
         coroutineScope.launch {
+            isLoading = true
             try {
-                apps = apiService.getApps()
+                Log.d("HomeScreen", "Cargando aplicaciones registradas...")
+                apps = apiService.getAllApps()
+                Log.d("HomeScreen", "Aplicaciones cargadas: ${apps.size}")
+                errorMessage = null
             } catch (e: Exception) {
-                errorMessage = "Error en GET /apps: ${e.message}"
+                Log.e("HomeScreen", "Error al cargar aplicaciones: ${e.message}")
+                errorMessage = "Error en GET /all-apps: ${e.message}"
+            } finally {
+                isLoading = false
             }
         }
     }
+
+    LaunchedEffect(Unit) {
+        val sharedPreferences = context.getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
+        userName = sharedPreferences.getString("user_name", null)
+        loadApps()
+    }
+
+    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.animacionloader))
+    val progress by animateLottieCompositionAsState(
+        composition = composition,
+        iterations = LottieConstants.IterateForever
+    )
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -47,17 +79,21 @@ fun HomeScreen(
                 title = {
                     Column {
                         Text(
-                            text = "Hello, Tester",
+                            text = userName?.let { "Hello, $it" } ?: "Hello, Guest",
                             fontSize = 20.sp,
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = Color.White
                         )
                         Text(
                             text = "Good morning 😊",
                             fontSize = 14.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = Color(0xFFB3E5FC)
                         )
                     }
                 },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color(0xFF1976D2),
+                    actionIconContentColor = Color.White
+                ),
                 actions = {
                     IconButton(onClick = { /* Acción de notificaciones */ }) {
                         Icon(
@@ -68,60 +104,124 @@ fun HomeScreen(
                 }
             )
         },
-        floatingActionButton = {
-            FloatingActionButton(onClick = onUploadClick) {
-                Text("Upload")
-            }
-        }
+        containerColor = Color(0xFFE3F2FD)
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp)
-                .verticalScroll(rememberScrollState())
-        ) {
-            errorMessage?.let {
-                Text(
-                    text = it,
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(8.dp)
+        if (isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentAlignment = Alignment.Center
+            ) {
+                LottieAnimation(
+                    composition = composition,
+                    progress = { progress },
+                    modifier = Modifier.size(150.dp)
                 )
             }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(top = 15.dp, start = 15.dp, end = 15.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                errorMessage?.let {
+                    item {
+                        Text(
+                            text = it,
+                            color = Color.Red,
+                            modifier = Modifier.padding(8.dp)
+                        )
+                    }
+                }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            OutlinedTextField(
-                value = searchQuery,
-                onValueChange = { searchQuery = it },
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text(text = "Search apps") },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.Search,
-                        contentDescription = "Search Icon"
+                item {
+                    OutlinedTextField(
+                        value = searchQuery,
+                         onValueChange = { searchQuery = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = { Text(text = "Buscar apps...", color = Color.Gray) },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Search,
+                                contentDescription = "Search Icon",
+                                tint = Color(0xFF1976D2)
+                            )
+                        },
+                        shape = RoundedCornerShape(8.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color(0xFF1976D2),
+                            unfocusedBorderColor = Color.Gray,
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black
+                        )
                     )
-                },
-                shape = MaterialTheme.shapes.medium
-            )
+                }
 
-            Spacer(modifier = Modifier.height(24.dp))
+                item {
+                    CategorySection(apiService = apiService, navController = navController)
+                }
 
-            CategorySection(apiService = apiService, navController = navController) // Pasamos el NavController
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            PopularAppsSection(
-                apps.filter {
+                val filteredApps = apps.filter {
                     it.name.contains(searchQuery, ignoreCase = true) || it.description.contains(
                         searchQuery,
                         ignoreCase = true
                     )
-                },
-                apiService
-            )
+                }
 
-            Spacer(modifier = Modifier.height(24.dp))
+                if (apps.isEmpty()) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "No hay aplicaciones registradas aún.",
+                                fontSize = 16.sp,
+                                color = Color.Gray
+                            )
+                        }
+                    }
+                } else {
+                    item {
+                        PopularAppsSectionHeader(
+                            errorMessage = popularAppsErrorMessage,
+                            onViewAllClick = { navController.navigate(Screen.AllApps.route) } // Navegar a AllAppsScreen
+                        )
+                    }
+
+                    if (filteredApps.isEmpty()) {
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "No se encontraron aplicaciones registradas.",
+                                    fontSize = 16.sp,
+                                    color = Color.Black.copy(alpha = 0.6f)
+                                )
+                            }
+                        }
+                    } else {
+                        items(filteredApps) { app ->
+                            AppCard(app) {
+                                navController.navigate("app_detail/${app.id}")
+                            }
+                        }
+                    }
+                }
+
+                item {
+                    Spacer(modifier = Modifier.height(24.dp))
+                }
+            }
         }
     }
 }

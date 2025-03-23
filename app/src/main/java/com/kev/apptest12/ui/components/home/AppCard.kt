@@ -1,73 +1,65 @@
 package com.kevin.courseApp.ui.main.compose.componentes
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.kev.apptest12.R
 import com.kev.apptest12.data.model.App
 
 @Composable
-fun AppCard(app: App, onTestClick: () -> Unit) {
+fun AppCard(app: App, onClick: () -> Unit) {
     Card(
         modifier = Modifier
-            .fillMaxWidth() // Ajustar al ancho disponible (útil para grid)
-            .clickable { /* Podrías abrir detalles */ },
-        shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .padding(vertical = 4.dp, horizontal = 8.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White // Fondo blanco para el Card
+        )
     ) {
-        Column {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.White) // Fondo blanco para el Row (redundante pero explícito)
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             AsyncImage(
-                model = "http://your-api-url/storage/${app.logo_path}",
-                contentDescription = app.name,
+                model = "https://backtest.aftconta.mx/storage/${app.logo_path}",
+                contentDescription = "${app.name} Logo",
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(120.dp)
-                    .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)),
-                contentScale = ContentScale.Crop
+                    .size(40.dp)
+                    .padding(end = 12.dp),
+                alignment = Alignment.Center,
+                placeholder = painterResource(R.drawable.ic_launcher_foreground),
+                error = painterResource(R.drawable.ic_launcher_foreground)
             )
+            // Contenido de texto
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(12.dp)
+                modifier = Modifier.weight(1f) // Ocupa el espacio restante
             ) {
                 Text(
                     text = app.name,
                     fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1,
-                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                    color = Color.Black, // Título en negro para contraste
+                    modifier = Modifier.padding(bottom = 2.dp)
                 )
                 Text(
-                    text = "By ${app.creator}",
-                    fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = app.description.take(50) + "...",
+                    text = app.description,
                     fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2,
-                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                    color = Color.Black, // Subtítulo en negro para contraste
+                    maxLines = 2
                 )
-                Spacer(modifier = Modifier.height(8.dp))
-                Button(
-                    onClick = onTestClick,
-                    modifier = Modifier.align(Alignment.End)
-                ) {
-                    Text("Test")
-                }
             }
         }
     }
