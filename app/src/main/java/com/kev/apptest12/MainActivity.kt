@@ -32,6 +32,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.kev.apptest12.data.remote.ApiService
 import com.kev.apptest12.data.remote.RetrofitClient
 import com.kev.apptest12.ui.components.auth.LoginScreen
@@ -78,10 +79,16 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
-        window.statusBarColor = android.graphics.Color.parseColor("#1976D2")
-
         setContent {
             AppTest12Theme {
+                val systemUiController = rememberSystemUiController()
+                SideEffect {
+                    systemUiController.setStatusBarColor(
+                            color = Color(0xFF1976D2),
+                        darkIcons = false
+                    )
+                }
+
                 val navController = rememberNavController()
                 val apiService = RetrofitClient.createApiService(this)
 

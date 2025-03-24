@@ -23,7 +23,7 @@ fun PopularAppsSectionHeader(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Popular Apps",
+                text = "App a Testear",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold
             )

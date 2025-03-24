@@ -13,15 +13,15 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.airbnb.lottie.compose.*
-import com.kev.apptest12.R
 import com.kev.apptest12.Screen
 import com.kev.apptest12.data.model.App
 import com.kev.apptest12.data.remote.ApiService
+import com.kev.apptest12.utils.LottieLoadingAnimation
 import com.kevin.courseApp.ui.main.compose.componentes.AppCard
 import com.kevin.courseApp.ui.main.compose.componentes.CategorySection
 import com.kevin.courseApp.ui.main.compose.componentes.PopularAppsSectionHeader
@@ -66,12 +66,6 @@ fun HomeScreen(
         loadApps()
     }
 
-    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.animacionloader))
-    val progress by animateLottieCompositionAsState(
-        composition = composition,
-        iterations = LottieConstants.IterateForever
-    )
-
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
@@ -91,7 +85,7 @@ fun HomeScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF1976D2),
+                    containerColor = Color(0xFF1976D2), // Blue color
                     actionIconContentColor = Color.White
                 ),
                 actions = {
@@ -101,24 +95,26 @@ fun HomeScreen(
                             contentDescription = "Notifications"
                         )
                     }
-                }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(80.dp) // Adjust height to make it taller
+                    .clip(
+                        RoundedCornerShape(
+                            bottomStart = 30.dp, // Rounded bottom-left corner
+                            bottomEnd = 30.dp,   // Rounded bottom-right corner
+                            topStart = 0.dp,     // No rounding on top-left
+                            topEnd = 0.dp        // No rounding on top-right
+                        )
+                    )
             )
         },
         containerColor = Color(0xFFE3F2FD)
     ) { paddingValues ->
         if (isLoading) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentAlignment = Alignment.Center
-            ) {
-                LottieAnimation(
-                    composition = composition,
-                    progress = { progress },
-                    modifier = Modifier.size(150.dp)
-                )
-            }
+            LottieLoadingAnimation(
+                modifier = Modifier.padding(paddingValues)
+            )
         } else {
             LazyColumn(
                 modifier = Modifier
@@ -140,8 +136,10 @@ fun HomeScreen(
                 item {
                     OutlinedTextField(
                         value = searchQuery,
-                         onValueChange = { searchQuery = it },
-                        modifier = Modifier.fillMaxWidth(),
+                        onValueChange = { searchQuery = it },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(20.dp)),
                         placeholder = { Text(text = "Buscar apps...", color = Color.Gray) },
                         leadingIcon = {
                             Icon(
@@ -150,7 +148,7 @@ fun HomeScreen(
                                 tint = Color(0xFF1976D2)
                             )
                         },
-                        shape = RoundedCornerShape(8.dp),
+                        shape = RoundedCornerShape(20.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = Color(0xFF1976D2),
                             unfocusedBorderColor = Color.Gray,
@@ -190,7 +188,7 @@ fun HomeScreen(
                     item {
                         PopularAppsSectionHeader(
                             errorMessage = popularAppsErrorMessage,
-                            onViewAllClick = { navController.navigate(Screen.AllApps.route) } // Navegar a AllAppsScreen
+                            onViewAllClick = { navController.navigate(Screen.AllApps.route) }
                         )
                     }
 

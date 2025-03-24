@@ -38,6 +38,7 @@ android {
     }
     buildFeatures {
         compose = true
+        viewBinding = true  // Add this line to enable View Binding
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.15"  // Compatible con Kotlin 1.9.25
@@ -60,6 +61,10 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.material)
+    implementation(libs.androidx.activity)
+    implementation(libs.androidx.constraintlayout)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -81,10 +86,10 @@ dependencies {
     // OkHttp
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("androidx.navigation:navigation-compose:2.8.4")
-
+    implementation("com.google.accompanist:accompanist-systemuicontroller:0.32.0")
     // SwipeRefreshLayout para "pull to refresh"
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
-
+    implementation ("com.google.android.gms:play-services-auth:20.7.0")
     // Coil para imágenes en Compose
     implementation("io.coil-kt:coil-compose:2.6.0")
 
