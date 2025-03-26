@@ -11,7 +11,6 @@ import com.kev.apptest12.data.remote.GoogleAuthRequest
 import com.kev.apptest12.data.remote.RetrofitClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-
 fun handleSignInResult(
     task: Task<GoogleSignInAccount>,
     apiService: ApiService,
@@ -20,21 +19,18 @@ fun handleSignInResult(
     coroutineScope: CoroutineScope,
     setErrorMessage: (String?) -> Unit,
     setGoogleLoading: (Boolean) -> Unit,
-    popUpRoute: String // Nuevo parámetro para especificar la ruta a eliminar del stack
+    popUpRoute: String
 ) {
     if (task.isSuccessful) {
         val account = task.result
-        val idToken = account.idToken // Token de Google
+        val idToken = account.idToken
         if (idToken != null) {
-            // Envía el token a tu backend de Laravel para autenticar al usuario
             coroutineScope.launch {
                 try {
-                    // Envuelve el idToken en un objeto GoogleAuthRequest
                     val response = apiService.loginWithGoogle(GoogleAuthRequest(idToken))
                     if (response.isSuccessful) {
                         val loginResponse = response.body()
                         if (loginResponse != null) {
-                            // Guardar el token y los datos del usuario
                             val sharedPreferences = context.getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
                             sharedPreferences.edit()
                                 .putString("access_token", loginResponse.access_token)
@@ -49,20 +45,21 @@ fun handleSignInResult(
                             setErrorMessage("Error: Respuesta del servidor vacía")
                         }
                     } else {
-                        setErrorMessage("Error al iniciar sesión con Google: ${response.message()}")
+                        setErrorMessage("Error del servidor: ${response.code()} - ${response.message()}")
                     }
                 } catch (e: Exception) {
-                    setErrorMessage("Error: ${e.message}")
+                    setErrorMessage("Excepción: ${e.message}")
                 } finally {
-                    setGoogleLoading(false) // Desactiva el estado de carga
+                    setGoogleLoading(false)
                 }
             }
         } else {
-            setErrorMessage("Error: No se pudo obtener el token de Google")
-            setGoogleLoading(false) // Desactiva el estado de carga
+            setErrorMessage("Error: No se obtuvo el token de Google")
+            setGoogleLoading(false)
         }
     } else {
-        setErrorMessage("Error al iniciar sesión con Google")
-        setGoogleLoading(false) // Desactiva el estado de carga
+        val exception = task.exception
+        setErrorMessage("Error al iniciar sesión con Google: ${exception?.message ?: "Desconocido"}")
+        setGoogleLoading(false)
     }
 }

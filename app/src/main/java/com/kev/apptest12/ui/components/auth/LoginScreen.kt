@@ -48,7 +48,7 @@ fun LoginScreen(apiService: ApiService, context: Context, navController: NavHost
     // Configura Google Sign-In
     val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
         .requestEmail()
-        .requestIdToken("146415761706-ggdu14anrtef6mh4uvufpldtaftotss9.apps.googleusercontent.com") // Reemplaza con tu client ID
+        .requestIdToken("789469710789-od8nf1l9tg6svmds3cd03l1ht8k6i317.apps.googleusercontent.com")
         .build()
 
     val googleSignInClient = GoogleSignIn.getClient(localContext, gso)
